@@ -29,8 +29,10 @@ def sha(path):
 
 def build_groups(df, root, hamming, mad=0.02):
     uf = UF()
+    group_col = "lesion_id" if "lesion_id" in df.columns else "patient_id"
     for _, r in df.iterrows():
-        uf.union("img:" + r.image_id, "pat:" + str(r.patient_id))
+        val = r.get(group_col, r.get("patient_id", r.image_id))
+        uf.union("img:" + str(r.image_id), f"grp:{val}")
     thumbs = [thumb(os.path.join(root, p)) for p in df.image_path]
     hashes = [ahash(t) for t in thumbs]
     shas = [sha(os.path.join(root, p)) for p in df.image_path]

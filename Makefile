@@ -1,12 +1,12 @@
 PY ?= python
 export PYTHONPATH := src
 
-.PHONY: install test fundamentals data baseline gui infer evaluate robustness gradcam clean
+.PHONY: install test fundamentals data baseline gui infer evaluate robustness gradcam benchmarks verify clean
 
 install:        ## pip install -e . with all optional dependencies
 	$(PY) -m pip install -e ".[all]"
 
-test:           ## unit tests (47 tests covering NumPy fundamentals, vision models, pipeline, UI)
+test:           ## unit tests (NumPy fundamentals, vision models, pipeline, UI, checkpoints)
 	$(PY) -m pytest -v
 
 fundamentals:   ## steps 3-6: all demos + ablations -> out/figures, out/fundamentals_results.json
@@ -32,6 +32,12 @@ robustness:     ## run clinical robustness stress-testing suite
 
 gradcam:        ## run Grad-CAM visual interpretability & error audit
 	$(PY) -m medimg gradcam
+
+benchmarks:     ## execute the experimental benchmark matrix across all models
+	$(PY) scripts/run_benchmarks.py
+
+verify:         ## execute automated aggressive model & pipeline stress-testing suite
+	$(PY) scripts/aggressive_model_check.py
 
 clean:
 	rm -rf out data runs/temp build *.egg-info .pytest_cache

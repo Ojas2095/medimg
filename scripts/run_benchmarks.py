@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from medimg.common import device, seed_all, run_meta, save_json
+from medimg.checkpoints import clone_state_dict
 from medimg.datasets import MedDataset, collate
 from medimg.metrics import auroc, bootstrap_ci, sens_spec, threshold_at_sensitivity, time_fn, confusion, dice, iou, ap50, ap_50_95
 from medimg.models import classifier, UNet, ResNetUNet, retinanet, fasterrcnn, dice_bce_loss, ConvVAE, vae_loss, TransformerSummary
@@ -73,7 +74,7 @@ def run_cls_model(arch, seed, epochs=5, bs=32, lr=1e-3, pretrained=True, balance
         val_au = auroc(ys, ps)
         if not np.isnan(val_au) and val_au > best_auroc:
             best_auroc = val_au
-            best_state = {k: v.cpu() for k, v in model.state_dict().items()}
+            best_state = clone_state_dict(model)
 
     # Load best checkpoint
     model.load_state_dict({k: v.to(DEV) for k, v in best_state.items()})
@@ -203,7 +204,7 @@ def run_segmentation_benchmark():
             mean_d = float(np.mean(d_val))
             if mean_d > best_dice:
                 best_dice = mean_d
-                best_state = {k: v.cpu() for k, v in m.state_dict().items()}
+                best_state = clone_state_dict(m)
 
         m.load_state_dict({k: v.to(DEV) for k, v in best_state.items()})
         m.eval()
@@ -532,7 +533,7 @@ def run_transformer_summary():
         print(f"Generated: {gen_text}")
         print(f"Factual Audit: {'PASSED' if passed else 'FAILED'}\n")
 
-    # Attention map visualization (mock attention weights for artifact)
+    # Attention visualization fixture (Explicitly labeled academic demo fixture; not learned weights)
     attn_map = np.random.uniform(0.1, 0.9, (4, len(words)))
     attn_map = attn_map / attn_map.sum(0, keepdims=True)
     fig, ax = plt.subplots(figsize=(8, 3))
@@ -542,13 +543,18 @@ def run_transformer_summary():
     ax.set_yticks(range(4))
     ax.set_yticklabels(["Score", "Area", "Boxes", "Conf"])
     plt.colorbar(cax)
-    plt.title("Cross-Attention Map (Metrics -> Summary Tokens)")
+    plt.title("Synthetic Demonstration Fixture: Simulated Attention Pattern\n(Academic Demo Only — Not Learned Model Weights)", fontsize=9)
     plt.tight_layout()
     attn_path = f"{OUT_DIR}/transformer_attention.png"
     plt.savefig(attn_path, dpi=150)
     plt.close()
 
-    summary_rep = {"audit": audit_results, "attention_map": attn_path}
+    summary_rep = {
+        "audit": audit_results,
+        "attention_map": attn_path,
+        "attention_type": "synthetic_demonstration_fixture",
+        "notice": "Simulated attention pattern for demonstration; not extracted from trained transformer weights."
+    }
     save_json(summary_rep, f"{RUNS_DIR}/transformer_summary_report.json")
     return summary_rep
 

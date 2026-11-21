@@ -31,8 +31,10 @@ def bootstrap_ci(fn, y, score, n=1000, seed=0, alpha=0.05):
         if not np.isnan(v): vals.append(v)
     return float(np.quantile(vals, alpha / 2)), float(np.quantile(vals, 1 - alpha / 2))
 
-def threshold_at_sensitivity(y, score, target=0.95):
+def threshold_at_sensitivity(y, score, target=0.95, target_sens=None):
     """Operating point for triage: highest threshold whose sensitivity >= target."""
+    if target_sens is not None:
+        target = target_sens
     y, s = np.asarray(y), np.asarray(score)
     for t in np.unique(s)[::-1]:
         if sens_spec(y, s >= t)[0] >= target: return float(t)

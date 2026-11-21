@@ -126,7 +126,8 @@ def build_ham10000_metadata(raw_dir, out_dir, require_masks=False):
 
         rec = {
             "image_id": img_id,
-            "patient_id": lesion_id,  # grouped by lesion_id for zero-leakage split
+            "lesion_id": lesion_id,   # authentic HAM10000 lesion identifier
+            "patient_id": lesion_id,  # maintained for backward-compatibility with grouped splitters
             "label": is_melanoma,
             "image_path": rel_img_path,
             "mask_path": rel_mask_path,
